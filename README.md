@@ -2,7 +2,7 @@
 
 **中文** | [English](README.en.md)
 
-将 **Excel 指标数据 + GeoJSON 行政边界** 转换为可审计的分级设色图与分级气泡图。
+将 **Excel 指标数据 + GeoJSON 行政边界** 转换为可审计的分级颜色图与分级气泡图。
 
 **当前版本：V1.3.1** · Codex / Claude Code / WorkBuddy · Windows / macOS / Linux
 
@@ -12,19 +12,19 @@
 
 全球半导体重点企业分布。以下企业数量为**模拟数据，仅用于展示制图能力，不代表真实企业数量、排名或完整行业统计**。三张图使用同一数据与分级阈值。
 
-### 蓝色 · 分级设色图
+### 蓝色 · 分级颜色图
 
-![全球半导体重点企业分布：蓝色分级设色图](docs/images/world-blue.png)
+![全球半导体重点企业分布：蓝色分级颜色图](docs/images/world-blue.png)
 
-### 橙色 · 分级设色图
+### 橙色 · 分级颜色图
 
-![全球半导体重点企业分布：橙色分级设色图](docs/images/world-orange.png)
+![全球半导体重点企业分布：橙色分级颜色图](docs/images/world-orange.png)
 
 ### 红蓝白 · 分级气泡图
 
 ![全球半导体重点企业分布：红蓝白分级气泡图](docs/images/world-red-blue-white-bubble.png)
 
-示例采用 `[0,100)`、`[100,200)`、`[200,300)`、`[300,400)`、`400及以上`。最低档不绘制气泡，仅保留灰色底图；较高档依次使用浅蓝、蓝、浅红、红。中国包含台湾：保留全部源几何，取消台湾单独标签和气泡；两条独立模拟数值合并为 760 家，全球模拟合计仍为 3801 家。原始行保留在审计来源中。
+示例采用 `[0,100)`、`[100,200)`、`[200,300)`、`[300,400)`、`400及以上`。最低档不绘制气泡，仅保留灰色底图；较高档依次使用浅蓝、蓝、浅红、红。
 
 ## 能做什么
 
@@ -63,7 +63,7 @@ node dist/industry-map.mjs version
 
 向 Agent 提供 Excel 和边界文件，例如：
 
-> 使用 industry-map，制作全球半导体重点企业分布。单位为企业数量（家）；分别输出蓝色、橙色分级设色图，以及红蓝白气泡图。使用 5 级，阈值为 0、100、200、300、400。
+> 使用 industry-map，制作全球半导体重点企业分布。单位为企业数量（家）；分别输出蓝色、橙色分级颜色图，以及红蓝白分级气泡图。使用 5 级，阈值为 0、100、200、300、400。
 
 也可以直接运行 CLI：
 
@@ -72,7 +72,7 @@ node dist/industry-map.mjs inspect --geojson input.geojson --excel metrics.xlsx 
 node dist/industry-map.mjs render --config map-config.json
 ```
 
-配置示例见 [输入与输出契约](references/input-contract.md)。已有输出默认拒绝覆盖，仅在明确授权后使用 `--force`。区域合并需显式配置并确认数值互不包含，不能将已含台湾的中国总数再次相加。
+配置示例见 [输入与输出契约](references/input-contract.md)。已有输出默认拒绝覆盖，仅在明确授权后使用 `--force`。
 
 每次渲染生成：地图 `.png` / `.svg` / `.pdf`、`data-audit.xlsx`、`map-config.resolved.json`、`render-report.json`。
 

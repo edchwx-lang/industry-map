@@ -2,7 +2,7 @@
 
 [中文](README.md) | **English**
 
-Turn **Excel metrics + GeoJSON administrative boundaries** into auditable choropleth and graduated-bubble maps.
+Turn **Excel metrics + GeoJSON administrative boundaries** into auditable graduated color maps and graduated bubble maps.
 
 **Current version: V1.3.1** · Codex / Claude Code / WorkBuddy · Windows / macOS / Linux
 
@@ -12,19 +12,19 @@ Turn **Excel metrics + GeoJSON administrative boundaries** into auditable chorop
 
 Global Distribution of Key Semiconductor Companies. These counts are **simulated for visualization only**, not actual company counts, rankings, or a complete industry census. All three maps use the same data and class thresholds.
 
-### Blue · Choropleth
+### Blue · Graduated Color Map
 
-![Global semiconductor company distribution: blue choropleth](docs/images/world-blue.png)
+![Global semiconductor company distribution: blue graduated color map](docs/images/world-blue.png)
 
-### Orange · Choropleth
+### Orange · Graduated Color Map
 
-![Global semiconductor company distribution: orange choropleth](docs/images/world-orange.png)
+![Global semiconductor company distribution: orange graduated color map](docs/images/world-orange.png)
 
-### Red–blue–white · Graduated bubbles
+### Red–blue–white · Graduated Bubble Map
 
-![Global semiconductor company distribution: red-blue-white bubbles](docs/images/world-red-blue-white-bubble.png)
+![Global semiconductor company distribution: red-blue-white graduated bubble map](docs/images/world-red-blue-white-bubble.png)
 
-The intervals are `[0,100)`, `[100,200)`, `[200,300)`, `[300,400)`, and `400+`. The lowest class has no bubbles and retains the gray base map; higher classes use light blue, blue, light red, and red. This example groups Taiwan with China, retaining all source geometry and removing a separate Taiwan label/bubble. The two disjoint simulated counts sum to 760; the global simulated total remains 3,801. Original rows remain in the audit provenance.
+The intervals are `[0,100)`, `[100,200)`, `[200,300)`, `[300,400)`, and `400+`. The lowest class has no bubbles and retains the gray base map; higher classes use light blue, blue, light red, and red.
 
 ## Features
 
@@ -63,7 +63,7 @@ Expect `"version":"1.3.1"`. See [compatibility notes](references/compatibility.m
 
 Give your agent an Excel workbook and GeoJSON file, for example:
 
-> Use industry-map to show the global distribution of key semiconductor companies. The metric is company count. Produce blue and orange choropleths and a red-blue-white bubble map. Use five classes with lower thresholds 0, 100, 200, 300, and 400.
+> Use industry-map to show the global distribution of key semiconductor companies. The metric is company count. Produce blue and orange graduated color maps and a red-blue-white graduated bubble map. Use five classes with lower thresholds 0, 100, 200, 300, and 400.
 
 Or use the CLI directly:
 
@@ -72,7 +72,7 @@ node dist/industry-map.mjs inspect --geojson input.geojson --excel metrics.xlsx 
 node dist/industry-map.mjs render --config map-config.json
 ```
 
-See the [input/output contract](references/input-contract.md) for configuration examples. Existing outputs are protected; use `--force` only after explicit overwrite approval. Region aggregation requires explicit configuration and confirmation that counts are disjoint. Never add Taiwan again to a China total that already includes it.
+See the [input/output contract](references/input-contract.md) for configuration examples. Existing outputs are protected; use `--force` only after explicit overwrite approval.
 
 Each render creates `.png`, `.svg`, `.pdf`, `data-audit.xlsx`, `map-config.resolved.json`, and `render-report.json`.
 
