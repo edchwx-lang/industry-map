@@ -1,0 +1,167 @@
+import { spawn } from 'node:child_process';
+import { constants as fsConstants } from 'node:fs';
+import { access, mkdir, mkdtemp, rename, rm, stat, writeFile } from 'node:fs/promises';
+import { homedir, tmpdir } from 'node:os';
+import { dirname, extname, join, posix, win32 } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import * as echarts from 'echarts';
+
+const findBrowser = createBrowserResolver();
+
+/** Export an ECharts option using local SVG rendering and a locally installed browser. */
+export async function exportArtifacts({ option, geojson, outputDir, slug, width = 3840, height = 2160, force = false }) {
+  if (!Number.isInteger(width) || !Number.isInteger(height) || width < 1 || height < 1) throw new Error('width and height must be positive integers');
+  await mkdir(outputDir, { recursive: true });
+  const targets = { svg: join(outputDir, `${slug}.svg`), png: join(outputDir, `${slug}.png`), pdf: join(outputDir, `${slug}.pdf`) };
+  if (!force) await rejectExisting(Object.values(targets));
+  const svg = renderSvg(option, geojson, width, height);
+  const temporarySvg = `${targets.svg}.tmp-${process.pid}-${Date.now()}.svg`;
+  const temporaryPng = `${targets.png}.tmp-${process.pid}-${Date.now()}.png`;
+  const temporaryPdf = `${targets.pdf}.tmp-${process.pid}-${Date.now()}.pdf`;
+  const temporaryPrintDocument = `${targets.pdf}.tmp-${process.pid}-${Date.now()}.html`;
+  await writeFile(temporarySvg, svg, 'utf8');
+  await writeFile(temporaryPrintDocument, printDocument(svg, width, height), 'utf8');
+  try {
+    const browser = await findBrowser();
+    const profile = await mkdtemp(join(tmpdir(), 'industry-map-browser-'));
+    const browserArgs = buildBrowserArguments(profile);
+    try {
+      await runBrowser(browser, [...browserArgs, '--hide-scrollbars', '--force-device-scale-factor=1', `--window-size=${width},${height}`, `--screenshot=${temporaryPng}`, toFileUrl(temporarySvg)]);
+      await runBrowser(browser, [...browserArgs, '--no-pdf-header-footer', `--print-to-pdf=${temporaryPdf}`, toFileUrl(temporaryPrintDocument)]);
+    } finally {
+      await rm(profile, { recursive: true, force: true });
+      await removeIfPresent(temporaryPrintDocument);
+    }
+    await assertNonempty(temporaryPng);
+    await assertNonempty(temporaryPdf);
+    await rename(temporarySvg, targets.svg);
+    await rename(temporaryPng, targets.png);
+    await rename(temporaryPdf, targets.pdf);
+    return { ...targets, width, height, browser, echarts: echarts.version };
+  } catch (error) {
+    await Promise.all([temporarySvg, temporaryPng, temporaryPdf, temporaryPrintDocument].map(path => removeIfPresent(path)));
+    throw error;
+  }
+}
+
+export function buildBrowserArguments(profile) {
+  if (typeof profile !== 'string' || !profile) throw new Error('Browser rendering requires an isolated user-data directory');
+  return [
+    '--headless',
+    '--disable-gpu',
+    '--no-first-run',
+    '--no-default-browser-check',
+    '--disable-sync',
+    '--disable-background-networking',
+    '--disable-component-update',
+    '--metrics-recording-only',
+    `--user-data-dir=${profile}`,
+  ];
+}
+
+function printDocument(svg, width, height) {
+  const landscape = width >= height;
+  const pageWidth = landscape ? 16 : 16 * width / height;
+  const pageHeight = landscape ? 16 * height / width : 16;
+  return `<!doctype html><html><head><meta charset="utf-8"><style>@page{size:${pageWidth}in ${pageHeight}in;margin:0}html,body{width:100%;height:100%;margin:0;overflow:hidden}svg{display:block;width:100%!important;height:100%!important}</style></head><body>${svg}</body></html>`;
+}
+
+function renderSvg(option, geojson, width, height) {
+  echarts.registerMap('industry-map', normalizeGeojsonForEcharts(geojson, option.geo?.nameProperty ?? 'name'));
+  const chart = echarts.init(null, null, { renderer: 'svg', ssr: true, width, height });
+  try {
+    chart.setOption(option);
+    return chart.renderToSVGString();
+  } finally {
+    chart.dispose();
+  }
+}
+
+export function normalizeGeojsonForEcharts(geojson, nameProperty) {
+  return {
+    ...geojson,
+    features: geojson.features.map(feature => ({
+      ...feature,
+      properties: { ...feature.properties, name: String(feature.properties?.[nameProperty]) },
+    })),
+  };
+}
+
+export function createBrowserResolver(resolveExecutable = resolveBrowserExecutable) {
+  let browserExecutablePromise;
+  return async function findResolvedBrowser() {
+    browserExecutablePromise ??= Promise.resolve().then(() => resolveExecutable());
+    try {
+      return await browserExecutablePromise;
+    } catch (error) {
+      browserExecutablePromise = undefined;
+      throw error;
+    }
+  };
+}
+
+/** Resolve a browser executable using the filesystem and PATH without launching any candidate. */
+export async function resolveBrowserExecutable({ environment = process.env, platform = process.platform, homedirPath = homedir(), statFile = stat, accessFile = access } = {}) {
+  const candidates = browserCandidates({ environment, platform, homedirPath });
+  for (const candidatePath of candidates) {
+    try {
+      if (!(await statFile(candidatePath)).isFile()) continue;
+      if (platform !== 'win32') await accessFile(candidatePath, fsConstants.X_OK);
+      return candidatePath;
+    } catch { /* inspect the next filesystem candidate */ }
+  }
+  throw new Error(`No local Edge, Chrome, or Chromium executable is available on ${platform}; set INDUSTRY_MAP_BROWSER to its executable path`);
+}
+
+export function browserCandidates({ environment = process.env, platform = process.platform, homedirPath = homedir() } = {}) {
+  if (!['win32', 'darwin', 'linux'].includes(platform)) throw new Error(`Unsupported browser platform: ${platform}`);
+  const pathApi = platform === 'win32' ? win32 : posix;
+  const pathSeparator = platform === 'win32' ? ';' : ':';
+  const pathDirectories = String(environment.PATH ?? '').split(pathSeparator).filter(Boolean);
+  const executableExtensions = platform === 'win32'
+    ? String(environment.PATHEXT ?? '.COM;.EXE;.BAT;.CMD').split(';').filter(Boolean)
+    : [''];
+  const known = platform === 'win32' ? [
+    environment['ProgramFiles(x86)'] && win32.join(environment['ProgramFiles(x86)'], 'Microsoft', 'Edge', 'Application', 'msedge.exe'),
+    environment.ProgramFiles && win32.join(environment.ProgramFiles, 'Google', 'Chrome', 'Application', 'chrome.exe'),
+    environment.LOCALAPPDATA && win32.join(environment.LOCALAPPDATA, 'Microsoft', 'Edge', 'Application', 'msedge.exe'),
+  ] : platform === 'darwin' ? [
+    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
+    '/Applications/Chromium.app/Contents/MacOS/Chromium',
+    posix.join(homedirPath, 'Applications/Google Chrome.app/Contents/MacOS/Google Chrome'),
+    posix.join(homedirPath, 'Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge'),
+    posix.join(homedirPath, 'Applications/Chromium.app/Contents/MacOS/Chromium'),
+  ] : [];
+  const commands = platform === 'win32'
+    ? ['msedge.exe', 'chrome.exe', 'chromium.exe']
+    : platform === 'darwin'
+      ? ['google-chrome', 'microsoft-edge', 'chromium', 'chromium-browser']
+      : ['google-chrome-stable', 'google-chrome', 'microsoft-edge-stable', 'microsoft-edge', 'chromium', 'chromium-browser'];
+  const candidates = [environment.INDUSTRY_MAP_BROWSER, ...known, ...commands].filter(Boolean);
+  const expanded = candidates.flatMap(candidate => candidate.includes('/') || candidate.includes('\\') || pathApi.isAbsolute(candidate)
+    ? [pathApi.resolve(candidate)]
+    : pathDirectories.flatMap(directory => executableExtensionsFor(candidate, executableExtensions).map(extension => pathApi.join(directory, `${candidate}${extension}`))));
+  return [...new Set(expanded)];
+}
+
+function executableExtensionsFor(candidate, extensions) {
+  return extname(candidate) ? [''] : extensions;
+}
+
+async function rejectExisting(paths) {
+  for (const path of paths) {
+    try { await access(path); throw new Error(`Output already exists and --force was not supplied: ${path}`); }
+    catch (error) { if (error?.code !== 'ENOENT') throw error; }
+  }
+}
+async function assertNonempty(path) { if ((await stat(path)).size < 1) throw new Error(`Browser produced an empty artifact: ${path}`); }
+async function removeIfPresent(path) { try { const { unlink } = await import('node:fs/promises'); await unlink(path); } catch { /* cleanup only */ } }
+export function toFileUrl(path) { return pathToFileURL(path).href; }
+function runBrowser(command, args) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args, { windowsHide: true, stdio: 'ignore' });
+    child.once('error', reject);
+    child.once('close', code => code === 0 ? resolve() : reject(new Error(`Browser exited with code ${code}`)));
+  });
+}

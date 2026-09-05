@@ -1,0 +1,7 @@
+interface:
+  display_name: "产业地图"
+  short_description: "跨代理、跨平台生成 V1.3 可审计产业地图"
+  default_prompt: "请使用 $industry-map V1.3 从内置或自有 GeoJSON 与 Excel 制作可审计产业地图；检查数据后一次询问未明确的图表类型、颜色和分级。"
+
+policy:
+  allow_implicit_invocation: true
