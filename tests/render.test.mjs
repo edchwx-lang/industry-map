@@ -157,8 +157,8 @@ test('label layer emits every matched and unmatched region name without hiding o
   assert.deepEqual(result.series.data.map(item => item.displayText), ['莞城街道', '南城街道', '东城街道', '万江街道']);
   assert.equal(result.series.labelLayout.hideOverlap, false);
   assert.equal(result.series.label.fontSize, 28);
-  assert.equal(result.series.label.textBorderWidth, 3);
-  assert.equal(result.series.itemStyle.opacity, undefined);
+  assert.equal(result.series.label.textBorderWidth, 0);
+  assert.equal(result.series.itemStyle.opacity, 1);
   assert.equal(result.series.itemStyle.color, 'transparent');
 });
 
@@ -172,7 +172,7 @@ test('label typography adapts but never suppresses dense feature names', () => {
   const medium = buildLabelSeries({ records: [], unmatched: Array(51).fill(featureCollection.features[0]), geoNameKey: 'name', featureCount: 51 });
   const dense = buildLabelSeries({ records: [], unmatched: Array(101).fill(featureCollection.features[0]), geoNameKey: 'name', featureCount: 101 });
   assert.equal(medium.series.label.fontSize, 24);
-  assert.equal(dense.series.label.fontSize, 18);
+  assert.equal(dense.series.label.fontSize, 24);
   assert.equal(medium.series.data.length, 51);
   assert.equal(dense.series.data.length, 101);
   assert.ok(medium.metadata.densityWarnings.length > 0);
@@ -182,7 +182,7 @@ test('label typography adapts but never suppresses dense feature names', () => {
 test('label typography scales from the 4K baseline on an 800 by 450 canvas', () => {
   const result = buildLabelSeries({ records: joined.matchedFeatures, unmatched: joined.unmatchedFeatures, featureCount: 4, canvasScale: 800 / 3840 });
   assert.equal(result.series.label.fontSize, 6);
-  assert.equal(result.series.label.textBorderWidth, 1);
+  assert.equal(result.series.label.textBorderWidth, 0);
 });
 
 test('custom legend typography and rectangle geometry scale on a preview canvas', () => {

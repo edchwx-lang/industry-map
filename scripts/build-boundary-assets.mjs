@@ -38,6 +38,13 @@ export async function buildBoundaryAssets({ sources, outputRoot }) {
     const target = path.join(outputRoot, ...definition.path.split('/'));
     await mkdir(path.dirname(target), { recursive: true });
     await writeFile(target, outputBytes);
+    const lineFeatures=sourceCollection.features.filter(feature=>['LineString','MultiLineString'].includes(feature.geometry?.type));
+    if(lineFeatures.length){
+      const lineBytes=Buffer.from(stableJson({type:'FeatureCollection',features:lineFeatures}));
+      const lineTarget=target.replace('.geojson','-lines.geojson');
+      await writeFile(lineTarget,lineBytes);
+      await writeFile(lineTarget.replace('.geojson','.metadata.json'),stableJson({source:definition.source,sourceSha256:sha256(sourceBytes),sha256:sha256(lineBytes),featureCount:lineFeatures.length,segmentCount:lineFeatures.reduce((n,f)=>n+(f.geometry.type==='LineString'?1:f.geometry.coordinates.length),0),transformation:'original line geometry retained in a separate overlay'}));
+    }
     assets.push({
       id: definition.id,
       path: definition.path,
@@ -52,7 +59,7 @@ export async function buildBoundaryAssets({ sources, outputRoot }) {
       geometryTypes: [...new Set(collection.features.map((feature) => feature.geometry.type))].sort(),
       bytes: outputBytes.length,
       priority: definition.priority,
-      transformations: ['retain polygon geometry only', 'canonical identity properties', 'deterministic feature ordering'],
+      transformations: ['retain polygon geometry only', 'canonical identity properties', 'deterministic feature ordering',...(lineFeatures.length?['retain original linework in separate sidecar']:[])],
     });
   }
   const manifest = {

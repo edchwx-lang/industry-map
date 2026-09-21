@@ -2,6 +2,8 @@
 
 ## 1. Inspect inputs
 
+V1.4: `mapScope` accepts `world`, `china-province`, or `regional`; `projection.name` accepts `equirectangular`, `china-albers`, or `mercator`. `metricKind` identifies `count`, `score`, `rate`, or `index`; non-additive metrics cannot use summed region groups. `regionGroups[].aggregation` supports confirmed `sum-disjoint` or `target-includes-members` (retain target value). `boundaryLinePath` optionally supplies original LineString/MultiLineString overlays; national maps otherwise retain bundled source linework. See [geography.md](geography.md).
+
 输入为一个 `FeatureCollection` GeoJSON 和一个 `.xlsx`。GeoJSON 可以是显式路径，也可以按 [boundary-assets.md](boundary-assets.md) 从内置目录解析：
 
 - 每个 feature 必须是 `Polygon` 或 `MultiPolygon`；行政层级不限。
@@ -59,7 +61,7 @@ resolved config 中：
 
 `mode`、`paletteId`、`classes`、`classification.method` 和 `classification.source` 必须来自用户已确认的展示门禁，不得由渲染器静默补齐。标题必须由用户提供；指标名通常取用户确认的数值列名；单位允许用户确认留空。副标题、来源和注释默认不写入图中，只有用户明确提供才配置。没有代码列时省略对应 `code`，不要制造占位字段。分类和气泡标签字段见 [style-spec.md](style-spec.md)。不得在 config 中加入 `force`；覆盖授权只能通过 CLI `--force` 表达。
 
-标签默认只显示全部行政区名称，无需在 config 中写 `labels`。只有用户明确要求显示具体数据时才启用 `labels.showValues: true`，对应 JSON 为 `"labels": { "showValues": true }`；此时匹配区域显示“名称 + 换行 + 数值 单位”。有限数值 0 必须显示；GeoJSON 中未匹配的区域没有可审计指标，仍只显示名称，不得伪造为 0。
+无需在config中写`labels`。全球两种模式只显示实际最低档之上的国家名称，最低档及未匹配国家不标注；全国和地方仍标注全部行政区。只有用户明确要求显示具体数据时启用`labels.showValues: true`，可见标签显示“名称 + 换行 + 数值 单位”，不取消全球筛选规则。全国/地方可见的有限0值必须显示，未匹配区域只显示名称，不伪造为0。全球报告`presentation.labels`记录`visibility`、`hiddenLowestClassCount`和`hiddenUnmatchedCount`，不改变完整数据审计。
 
 受保护模板使用更短的 config，标题、指标名、单位必须从模板读取，不得在 config 重复覆盖：
 

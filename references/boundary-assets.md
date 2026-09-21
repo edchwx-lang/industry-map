@@ -2,6 +2,10 @@
 
 Use this catalog only when the user wants a built-in administrative boundary or explicitly authorizes township retrieval. Explicit `geojsonPath` remains supported and has highest precedence.
 
+V1.4 adds a dedicated Shenzhen ten-region asset preserving supplied CGCS2000 geometry and full 12-digit join codes, including Dapeng New Area. Resolve by city code `440300`; do not truncate source codes. Standalone CLI: `boundary import-shenzhen --source-base <path-without-extension> --output <new.geojson>`. It validates SHP/SHX/DBF/CPG/PRJ/QMD and refuses overwriting. A boundary asset supplies no enterprise statistics.
+
+Original national linework: `boundary/china/province/tianditu-lines.geojson`, with hash/source metadata alongside it. It contains 8 source line features and 31 line segments, unchanged. Local source identity is verified by hash, not an independent official map certification.
+
 Resolution order: explicit file, bundled Dongguan/Chenghai town asset, bundled Tianditu province/city/county asset, verified external cache, then an explicitly authorized online township fetch. Tianditu is authoritative when bundled China administrative layers overlap other local material.
 
 List and resolve local assets:

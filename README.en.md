@@ -4,27 +4,27 @@
 
 Turn **Excel metrics + GeoJSON administrative boundaries** into auditable graduated color maps and graduated bubble maps.
 
-**Current version: V1.3.1** · Codex / Claude Code / WorkBuddy · Windows / macOS / Linux
+**Current version: V1.4** · Codex / Claude Code / WorkBuddy · Windows / macOS / Linux
 
-[Download V1.3.1](https://github.com/edchwx-lang/industry-map/releases/tag/v1.3.1) · [Skill instructions](SKILL.md) · [Configuration contract](references/input-contract.md)
+[Download V1.4](https://github.com/edchwx-lang/industry-map/releases/tag/1.4) · [Skill instructions](SKILL.md) · [Configuration contract](references/input-contract.md)
 
 ## Gallery
 
-Global Distribution of Key Semiconductor Companies. These counts are **simulated for visualization only**, not actual company counts, rankings, or a complete industry census. All three maps use the same data and class thresholds.
+Global distribution of key semiconductor companies, semiconductor industry development in China, and Shenzhen's marine industry. These metrics are **simulated for visualization only**, not actual company counts, development scores, rankings, or a complete industry census. Each map uses its own regional data and classification.
 
-### Blue · Graduated Color Map
+### World · Red–blue–white Graduated Bubble Map
 
-![Global semiconductor company distribution: blue graduated color map](docs/images/world-blue.png)
+![Global semiconductor company distribution: red-blue-white graduated bubble map](docs/images/world-bubble.png)
 
-### Orange · Graduated Color Map
+### China · Red–blue–white Graduated Color Map
 
-![Global semiconductor company distribution: orange graduated color map](docs/images/world-orange.png)
+![Semiconductor industry development in China: red-blue-white graduated color map](docs/images/china-choropleth.png)
 
-### Red–blue–white · Graduated Bubble Map
+### Shenzhen · Blue Graduated Color Map
 
-![Global semiconductor company distribution: red-blue-white graduated bubble map](docs/images/world-red-blue-white-bubble.png)
+![Shenzhen marine industry: blue graduated color map](docs/images/shenzhen-choropleth.png)
 
-The intervals are `[0,100)`, `[100,200)`, `[200,300)`, `[300,400)`, and `400+`. The lowest class has no bubbles and retains the gray base map; higher classes use light blue, blue, light red, and red.
+The global bubble map uses `[0,100)`, `[100,200)`, `[200,300)`, `[300,400)`, and `400+`. The lowest class has no bubbles or country labels and retains the gray base map; higher classes use light blue, blue, light red, and red. See the individual legends for China and Shenzhen.
 
 ## Features
 
@@ -40,7 +40,7 @@ The intervals are `[0,100)`, `[100,200)`, `[200,300)`, `[300,400)`, and `400+`. 
 
 Requires **Node.js 22+** and a local **Chrome, Chromium, or Edge** installation. Release packages bundle JavaScript dependencies; no runtime `npm install` is needed.
 
-1. Download `industry-map-v1.3.1.zip` from the [V1.3.1 release](https://github.com/edchwx-lang/industry-map/releases/tag/v1.3.1).
+1. Download `industry-map-v1.4.zip` from the [V1.4 release](https://github.com/edchwx-lang/industry-map/releases/tag/1.4).
 2. Extract and place the complete `industry-map` folder in the appropriate directory:
 
 | Agent | Skill directory |
@@ -57,7 +57,7 @@ From the installed `industry-map` folder:
 node dist/industry-map.mjs version
 ```
 
-Expect `"version":"1.3.1"`. See [compatibility notes](references/compatibility.md) for browser and path configuration. Actual exports have been tested on Windows. macOS/Linux path behavior is unit-tested, but native export acceptance on those systems remains unverified.
+Expect `"version":"1.4.0"`. See [compatibility notes](references/compatibility.md) for browser and path configuration. Actual exports have been tested on Windows. macOS/Linux path behavior is unit-tested, but native export acceptance on those systems remains unverified.
 
 ## Usage
 

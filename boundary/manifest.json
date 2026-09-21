@@ -1,1 +1,191 @@
-{"schemaVersion":1,"use":"Non-commercial only; verify upstream terms before redistribution.","precedence":["explicit-file","builtin-town","tianditu","verified-cache","authorized-online-fetch"],"assets":[{"id":"world","path":"world/world.geojson","level":"country","source":"Natural Earth derivative supplied by user","sourceFile":"world.geojson","sourceCrs":"urn:ogc:def:crs:OGC:1.3:CRS84","sourceSha256":"5ae21846eb6f9deeb7f382b7fc72842feadf32e8567e55ed18147657c226afb4","sha256":"f726db4851af024e8dbb7a20a4c8c742eb3fc4180ec2f24146f8e6be7a362bdd","featureCount":180,"geometryTypes":["MultiPolygon"],"bytes":266159,"priority":20,"transformations":["retain polygon geometry only","canonical identity properties","deterministic feature ordering"]},{"id":"china","path":"china/china.geojson","level":"country","source":"User-supplied China outline","sourceFile":"china.geojson","sourceCrs":"unspecified (coordinates retained)","sourceSha256":"83ac502aeac66a5527607ec844169418505d990f1a2dc33226743643541eed3c","sha256":"0d673a980d76d37749a12b40484e043085a8968a5ff3d1ebeafce4897829c9a1","featureCount":1,"geometryTypes":["MultiPolygon"],"bytes":162664,"priority":30,"transformations":["retain polygon geometry only","canonical identity properties","deterministic feature ordering"]},{"id":"china-province","path":"china/province/tianditu.geojson","level":"province","source":"天地图","sourceFile":"中国_省.geojson","sourceCrs":"urn:ogc:def:crs:EPSG::4490","sourceSha256":"3af8294f9ad61cc2bf84c1bb7e4bbf86a6336c68d754b699a0e6ddc33ef81486","sha256":"9ffe26cf5eb35efa3d68668b497b72da5e7fc49605f17bd42c979a8f1fee8e04","featureCount":34,"geometryTypes":["MultiPolygon"],"bytes":1673471,"priority":100,"transformations":["retain polygon geometry only","canonical identity properties","deterministic feature ordering"]},{"id":"china-city","path":"china/city/tianditu.geojson","level":"city","source":"天地图","sourceFile":"中国_市.geojson","sourceCrs":"urn:ogc:def:crs:EPSG::4490","sourceSha256":"d7a6f05b7e58cf758d74bd71ed0ea2ce981ef99436e4881e9a68098c3cd80b3b","sha256":"cea0558ff92dd87863a89e54554bd147c9f223a0e3133919e2f98a96ebe02e61","featureCount":375,"geometryTypes":["MultiPolygon"],"bytes":4238698,"priority":100,"transformations":["retain polygon geometry only","canonical identity properties","deterministic feature ordering"]},{"id":"china-county","path":"china/county/tianditu.geojson","level":"county","source":"天地图","sourceFile":"中国_县.geojson","sourceCrs":"urn:ogc:def:crs:EPSG::4490","sourceSha256":"91edf86abe109a1de33052977852e37f848f350d37ae069b40e0d80dcc2a97d3","sha256":"c31f91d493ccbff96e87dab8d203649ebae0d5fd67b32543a3b7b8b31576363b","featureCount":2891,"geometryTypes":["MultiPolygon"],"bytes":10097997,"priority":100,"transformations":["retain polygon geometry only","canonical identity properties","deterministic feature ordering"]},{"id":"town-441900","path":"china/town/builtin/441900.geojson","level":"town","parentAdcode":"441900","source":"User-supplied Dongguan township boundary","sourceFile":"乡镇边界_441900.geojson","sourceCrs":"unspecified (coordinates retained)","sourceSha256":"552641c7ab9ed0ff20ea76db83100955ca8d9602c3491b199b3c5f935608ab36","sha256":"694eb9663dcf08aa777e11e1c71a5637ebc9f2f9bea1cf5ae0cbc8486ee57bd5","featureCount":34,"geometryTypes":["MultiPolygon"],"bytes":1345236,"priority":120,"transformations":["retain polygon geometry only","canonical identity properties","deterministic feature ordering"]},{"id":"town-440515","path":"china/town/builtin/440515.geojson","level":"town","parentAdcode":"440515","source":"User-supplied Chenghai township boundary","sourceFile":"汕头市澄海区街道.geojson","sourceCrs":"unspecified (coordinates retained)","sourceSha256":"ed2a13685fbe2d3a1f61b9c5a5c29b3e31024cb5a80086e6e0e8f53aff81e6f2","sha256":"72af6a3e948d4322f8b77e33ffda87bb2c86da77830d9e92da54fa820e9476f3","featureCount":11,"geometryTypes":["MultiPolygon","Polygon"],"bytes":66522,"priority":120,"transformations":["retain polygon geometry only","canonical identity properties","deterministic feature ordering"]}]}
+{
+  "schemaVersion": 1,
+  "use": "Non-commercial only; verify upstream terms before redistribution.",
+  "precedence": [
+    "explicit-file",
+    "builtin-town",
+    "tianditu",
+    "verified-cache",
+    "authorized-online-fetch"
+  ],
+  "assets": [
+    {
+      "id": "world",
+      "path": "world/world.geojson",
+      "level": "country",
+      "source": "Natural Earth derivative supplied by user",
+      "sourceFile": "world.geojson",
+      "sourceCrs": "urn:ogc:def:crs:OGC:1.3:CRS84",
+      "sourceSha256": "5ae21846eb6f9deeb7f382b7fc72842feadf32e8567e55ed18147657c226afb4",
+      "sha256": "f726db4851af024e8dbb7a20a4c8c742eb3fc4180ec2f24146f8e6be7a362bdd",
+      "featureCount": 180,
+      "geometryTypes": [
+        "MultiPolygon"
+      ],
+      "bytes": 266159,
+      "priority": 20,
+      "transformations": [
+        "retain polygon geometry only",
+        "canonical identity properties",
+        "deterministic feature ordering"
+      ]
+    },
+    {
+      "id": "china",
+      "path": "china/china.geojson",
+      "level": "country",
+      "source": "User-supplied China outline",
+      "sourceFile": "china.geojson",
+      "sourceCrs": "unspecified (coordinates retained)",
+      "sourceSha256": "83ac502aeac66a5527607ec844169418505d990f1a2dc33226743643541eed3c",
+      "sha256": "0d673a980d76d37749a12b40484e043085a8968a5ff3d1ebeafce4897829c9a1",
+      "featureCount": 1,
+      "geometryTypes": [
+        "MultiPolygon"
+      ],
+      "bytes": 162664,
+      "priority": 30,
+      "transformations": [
+        "retain polygon geometry only",
+        "canonical identity properties",
+        "deterministic feature ordering"
+      ]
+    },
+    {
+      "id": "china-province",
+      "path": "china/province/tianditu.geojson",
+      "level": "province",
+      "source": "天地图",
+      "sourceFile": "中国_省.geojson",
+      "sourceCrs": "urn:ogc:def:crs:EPSG::4490",
+      "sourceSha256": "3af8294f9ad61cc2bf84c1bb7e4bbf86a6336c68d754b699a0e6ddc33ef81486",
+      "sha256": "9ffe26cf5eb35efa3d68668b497b72da5e7fc49605f17bd42c979a8f1fee8e04",
+      "featureCount": 34,
+      "geometryTypes": [
+        "MultiPolygon"
+      ],
+      "bytes": 1673471,
+      "priority": 100,
+      "transformations": [
+        "retain polygon geometry only",
+        "canonical identity properties",
+        "deterministic feature ordering"
+      ]
+    },
+    {
+      "id": "china-city",
+      "path": "china/city/tianditu.geojson",
+      "level": "city",
+      "source": "天地图",
+      "sourceFile": "中国_市.geojson",
+      "sourceCrs": "urn:ogc:def:crs:EPSG::4490",
+      "sourceSha256": "d7a6f05b7e58cf758d74bd71ed0ea2ce981ef99436e4881e9a68098c3cd80b3b",
+      "sha256": "cea0558ff92dd87863a89e54554bd147c9f223a0e3133919e2f98a96ebe02e61",
+      "featureCount": 375,
+      "geometryTypes": [
+        "MultiPolygon"
+      ],
+      "bytes": 4238698,
+      "priority": 100,
+      "transformations": [
+        "retain polygon geometry only",
+        "canonical identity properties",
+        "deterministic feature ordering"
+      ]
+    },
+    {
+      "id": "china-county",
+      "path": "china/county/tianditu.geojson",
+      "level": "county",
+      "source": "天地图",
+      "sourceFile": "中国_县.geojson",
+      "sourceCrs": "urn:ogc:def:crs:EPSG::4490",
+      "sourceSha256": "91edf86abe109a1de33052977852e37f848f350d37ae069b40e0d80dcc2a97d3",
+      "sha256": "c31f91d493ccbff96e87dab8d203649ebae0d5fd67b32543a3b7b8b31576363b",
+      "featureCount": 2891,
+      "geometryTypes": [
+        "MultiPolygon"
+      ],
+      "bytes": 10097997,
+      "priority": 100,
+      "transformations": [
+        "retain polygon geometry only",
+        "canonical identity properties",
+        "deterministic feature ordering"
+      ]
+    },
+    {
+      "id": "county-440300",
+      "path": "china/county/shenzhen.geojson",
+      "level": "county",
+      "parentAdcode": "440300",
+      "source": "User-supplied local Shenzhen district shapefile",
+      "sourceFile": "深圳区县 gb18030.shp (+ .shx/.dbf/.cpg/.prj/.qmd)",
+      "sourceCrs": "urn:ogc:def:crs:EPSG::4490",
+      "sourceSha256": {
+        "shp": "6db3ddb27f7c50f46bfd6e774b0b0a024aa17b1fa8e404588ea452738dba9edb",
+        "shx": "9c7c5c455ea404f60a60f4ed8ffbe7380092cdb5f7be59fd63b26d414959e3a1",
+        "dbf": "e51f0335290972eb0e0e712799d3ef15ee2d8838816c27b45bf27a589449afe4",
+        "cpg": "39cdd87d4811540fe2b3bdccc844b4d70b8487964371fb0a8d18855d716cb647",
+        "prj": "b10dbe4d6d1de908d340f892c90b3d31a552630af3742bb515bfe1bd26124f2c",
+        "qmd": "11909e614610a4e92c5f1aa4d6aa81f528025095bb703ecb35ce739fc608be96"
+      },
+      "sha256": "67657ea4ead4d7f49345816cde57e9d1c0e3c18fbe104dded8dd04f7130a4d53",
+      "featureCount": 10,
+      "geometryTypes": ["MultiPolygon", "Polygon"],
+      "bytes": 1021882,
+      "priority": 120,
+      "transformations": [
+        "decode DBF as GB18030",
+        "preserve all polygon coordinates and rings",
+        "canonical identity properties",
+        "preserve source record ordering"
+      ]
+    },
+    {
+      "id": "town-441900",
+      "path": "china/town/builtin/441900.geojson",
+      "level": "town",
+      "parentAdcode": "441900",
+      "source": "User-supplied Dongguan township boundary",
+      "sourceFile": "乡镇边界_441900.geojson",
+      "sourceCrs": "unspecified (coordinates retained)",
+      "sourceSha256": "552641c7ab9ed0ff20ea76db83100955ca8d9602c3491b199b3c5f935608ab36",
+      "sha256": "694eb9663dcf08aa777e11e1c71a5637ebc9f2f9bea1cf5ae0cbc8486ee57bd5",
+      "featureCount": 34,
+      "geometryTypes": [
+        "MultiPolygon"
+      ],
+      "bytes": 1345236,
+      "priority": 120,
+      "transformations": [
+        "retain polygon geometry only",
+        "canonical identity properties",
+        "deterministic feature ordering"
+      ]
+    },
+    {
+      "id": "town-440515",
+      "path": "china/town/builtin/440515.geojson",
+      "level": "town",
+      "parentAdcode": "440515",
+      "source": "User-supplied Chenghai township boundary",
+      "sourceFile": "汕头市澄海区街道.geojson",
+      "sourceCrs": "unspecified (coordinates retained)",
+      "sourceSha256": "ed2a13685fbe2d3a1f61b9c5a5c29b3e31024cb5a80086e6e0e8f53aff81e6f2",
+      "sha256": "72af6a3e948d4322f8b77e33ffda87bb2c86da77830d9e92da54fa820e9476f3",
+      "featureCount": 11,
+      "geometryTypes": [
+        "MultiPolygon",
+        "Polygon"
+      ],
+      "bytes": 66522,
+      "priority": 120,
+      "transformations": [
+        "retain polygon geometry only",
+        "canonical identity properties",
+        "deterministic feature ordering"
+      ]
+    }
+  ]
+}

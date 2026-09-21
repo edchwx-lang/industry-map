@@ -65,9 +65,11 @@ export async function resolveBoundary({
     return { path: resolved, provenance: { kind: 'explicit-file', source: 'explicit-file', level, parentAdcode, sha256: hash } };
   }
   const manifest = await loadBoundaryManifest(skillRoot);
-  const candidates = manifest.assets.filter((asset) =>
-    (!id || asset.id === id) && asset.level === level && (!parentAdcode || asset.parentAdcode === String(parentAdcode))
-  );
+  const eligible = manifest.assets.filter((asset) => (!id || asset.id === id) && asset.level === level);
+  let candidates = parentAdcode
+    ? eligible.filter((asset) => asset.parentAdcode === String(parentAdcode))
+    : eligible.filter((asset) => !asset.parentAdcode);
+  if (parentAdcode && !candidates.length) candidates = eligible.filter((asset) => !asset.parentAdcode);
   if (candidates.length > 1) throw new Error(`boundary selection is ambiguous; specify id (${candidates.map(({ id: value }) => value).join(', ')})`);
   if (candidates.length === 1) {
     const asset = candidates[0];

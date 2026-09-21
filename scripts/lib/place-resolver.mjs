@@ -49,7 +49,7 @@ export async function resolvePlaceChildren({ skillRoot, place, parentAdcode }) {
   else if (matched.level === 'city') child = { level: 'county', parentAdcode: matched.adcode };
   else child = { level: 'town', parentAdcode: matched.adcode };
 
-  const selector = child.level === 'town' ? child : { level: child.level };
+  const selector = child.parentAdcode ? child : { level: child.level };
   const { resolved, collection } = await collectionFor(skillRoot, selector);
   const features = child.level === 'town'
     ? collection.features

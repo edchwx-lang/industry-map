@@ -15,6 +15,7 @@ import { createTemplateWorkbook } from './lib/template-workbook.mjs';
 import { loadTemplateInput } from './lib/template-input.mjs';
 import { createMapJob } from './lib/map-job.mjs';
 import { validatePresentationConfig } from './lib/presentation-config.mjs';
+import { importShenzhen } from './lib/import-shenzhen.mjs';
 
 const skillRoot = resolve(import.meta.dirname, '..');
 
@@ -37,6 +38,12 @@ async function template(options, action) {
 }
 
 async function boundary(options, action) {
+  if (action === 'import-shenzhen') {
+    if (!options['source-base'] || !options.output) throw new Error('import-shenzhen requires --source-base and --output');
+    const result = await importShenzhen({sourceBase:resolve(options['source-base']),outputPath:resolve(options.output)});
+    process.stdout.write(`${JSON.stringify(result,null,2)}\n`);
+    return;
+  }
   if (action === 'list') {
     process.stdout.write(`${JSON.stringify(await listBoundaries({ skillRoot }), null, 2)}\n`);
     return;
@@ -55,7 +62,7 @@ async function boundary(options, action) {
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
     return;
   }
-  throw new Error('boundary requires list, resolve, or fetch-town');
+  throw new Error('boundary requires list, resolve, fetch-town, or import-shenzhen');
 }
 
 async function inspect(options) {
@@ -124,14 +131,29 @@ async function render(options) {
   if (joined.matchedFeatures.some(record => typeof record.value !== 'number' || !Number.isFinite(record.value))) throw new Error('Selected metric values must be finite numbers');
   applyRegionGroups(geojson, joined, resolvedConfig);
   const built = buildChartOption(resolvedConfig, joined);
+  const lineOverlayPath = config.boundaryLinePath ? resolve(root,config.boundaryLinePath)
+    : built.presentation.geography.scope === 'china-province' ? join(skillRoot,'boundary/china/province/tianditu-lines.geojson') : undefined;
+  let lineOverlay;
+  let linework;
+  if(lineOverlayPath){
+    const bytes=await readFile(lineOverlayPath);
+    const hash=createHash('sha256').update(bytes).digest('hex');
+    if(!config.boundaryLinePath){
+      const metadata=JSON.parse(await readFile(lineOverlayPath.replace('.geojson','.metadata.json'),'utf8'));
+      if(hash!==metadata.sha256)throw new Error('Bundled boundary line hash mismatch');
+      linework={...metadata,path:lineOverlayPath};
+    }else linework={path:lineOverlayPath,sha256:hash,source:'explicit-file'};
+    lineOverlay=JSON.parse(bytes);
+    if(lineOverlay.type!=='FeatureCollection'||!Array.isArray(lineOverlay.features))throw new Error('Boundary line overlay must be a FeatureCollection');
+  }
   const outputDir = resolve(root, config.outputDir);
   const slug = config.slug ?? 'industry-map';
   const force = options.force === true;
   const contract = [`${slug}.png`, `${slug}.svg`, `${slug}.pdf`, 'data-audit.xlsx', 'map-config.resolved.json', 'render-report.json'].map(file => join(outputDir, file));
-  await guardOutputTargets(contract, [configPath, geojsonPath, excelPath]);
+  await guardOutputTargets(contract, [configPath, geojsonPath, excelPath,...(lineOverlayPath?[lineOverlayPath]:[])]);
   if (!force) await rejectExisting(contract);
   await mkdir(outputDir, { recursive: true });
-  const artifacts = await exportArtifacts({ option: built.option, geojson, outputDir, slug, width: config.width ?? 3840, height: config.height ?? 2160, force });
+  const artifacts = await exportArtifacts({ option: built.option, geojson, lineOverlay, outputDir, slug, width: config.width ?? 3840, height: config.height ?? 2160, force });
   await writeAuditWorkbook(join(outputDir, 'data-audit.xlsx'), joined, built.classification, resolvedConfig);
   await atomicJson(join(outputDir, 'map-config.resolved.json'), resolvedConfig);
   const report = {
@@ -139,6 +161,8 @@ async function render(options) {
     join: { featureCount: geojson.features.length, rowCount: rows.length, matchedCount: joined.matchedFeatures.length, unmatchedRowCount: joined.unmatchedRows.length, unmatchedFeatureCount: joined.unmatchedFeatures.length, coverage: geojson.features.length ? joined.matchedFeatures.length / geojson.features.length : 0 },
     classification: built.classification,
     presentation: built.presentation,
+    geometryVerification: artifacts.diagnostics,
+    ...(linework?{linework}:{}),
     rendererVersions: { node: process.version, echarts: artifacts.echarts, browser: artifacts.browser },
     warnings: [...selectedTable.warnings, ...(joined.unmatchedFeatures.length ? [`${joined.unmatchedFeatures.length} GeoJSON feature(s) have null metrics`] : [])],
     boundary: resolvedBoundary.provenance,

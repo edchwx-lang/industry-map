@@ -5,16 +5,17 @@ import { homedir, tmpdir } from 'node:os';
 import { dirname, extname, join, posix, win32 } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import * as echarts from 'echarts';
+import { placeScreenLabels } from './screen-labels.mjs';
 
 const findBrowser = createBrowserResolver();
 
 /** Export an ECharts option using local SVG rendering and a locally installed browser. */
-export async function exportArtifacts({ option, geojson, outputDir, slug, width = 3840, height = 2160, force = false }) {
+export async function exportArtifacts({ option, geojson, lineOverlay, outputDir, slug, width = 3840, height = 2160, force = false }) {
   if (!Number.isInteger(width) || !Number.isInteger(height) || width < 1 || height < 1) throw new Error('width and height must be positive integers');
   await mkdir(outputDir, { recursive: true });
   const targets = { svg: join(outputDir, `${slug}.svg`), png: join(outputDir, `${slug}.png`), pdf: join(outputDir, `${slug}.pdf`) };
   if (!force) await rejectExisting(Object.values(targets));
-  const svg = renderSvg(option, geojson, width, height);
+  const { svg, diagnostics } = renderSvg(option, geojson, width, height, lineOverlay);
   const temporarySvg = `${targets.svg}.tmp-${process.pid}-${Date.now()}.svg`;
   const temporaryPng = `${targets.png}.tmp-${process.pid}-${Date.now()}.png`;
   const temporaryPdf = `${targets.pdf}.tmp-${process.pid}-${Date.now()}.pdf`;
@@ -37,7 +38,7 @@ export async function exportArtifacts({ option, geojson, outputDir, slug, width 
     await rename(temporarySvg, targets.svg);
     await rename(temporaryPng, targets.png);
     await rename(temporaryPdf, targets.pdf);
-    return { ...targets, width, height, browser, echarts: echarts.version };
+    return { ...targets, width, height, browser, echarts: echarts.version, diagnostics };
   } catch (error) {
     await Promise.all([temporarySvg, temporaryPng, temporaryPdf, temporaryPrintDocument].map(path => removeIfPresent(path)));
     throw error;
@@ -66,12 +67,30 @@ function printDocument(svg, width, height) {
   return `<!doctype html><html><head><meta charset="utf-8"><style>@page{size:${pageWidth}in ${pageHeight}in;margin:0}html,body{width:100%;height:100%;margin:0;overflow:hidden}svg{display:block;width:100%!important;height:100%!important}</style></head><body>${svg}</body></html>`;
 }
 
-function renderSvg(option, geojson, width, height) {
+export function renderSvg(option, geojson, width, height, lineOverlay) {
   echarts.registerMap('industry-map', normalizeGeojsonForEcharts(geojson, option.geo?.nameProperty ?? 'name'));
   const chart = echarts.init(null, null, { renderer: 'svg', ssr: true, width, height });
   try {
     chart.setOption(option);
-    return chart.renderToSVGString();
+    const geo = chart.getModel().getComponent('geo').coordinateSystem;
+    const [a,b,c,d] = geo.transform;
+    const scaleX = Math.hypot(a,b), scaleY = Math.hypot(c,d);
+    if (geo.projection && (!Number.isFinite(scaleX / scaleY) || Math.abs(scaleX / scaleY - 1) > 1e-9)) throw new Error('Export refused: anisotropic screen transform; 地图必须等比例缩放');
+    const graphics=[];
+    for (const feature of lineOverlay?.features ?? []) {
+      const geometry=feature.geometry;
+      const segments=geometry.type==='LineString'?[geometry.coordinates]:geometry.type==='MultiLineString'?geometry.coordinates:null;
+      if(!segments) throw new Error('Line overlay only accepts LineString/MultiLineString');
+      for(const segment of segments) {
+        if(segment.length<2 || segment.some(p=>p.length<2 || !p.slice(0,2).every(Number.isFinite))) throw new Error('Invalid boundary line coordinates');
+        const points=segment.map(p=>geo.dataToPoint(p));
+        if(points.some(p=>!p || !p.every(Number.isFinite))) throw new Error('Boundary projection failed');
+        graphics.push({type:'polyline',silent:true,z:5,shape:{points},style:{stroke:'#374151',lineWidth:Math.max(1,1.8*Math.min(width/3840,height/2160)),fill:null}});
+      }
+    }
+    if(graphics.length) chart.setOption({graphic:[...(option.graphic??[]),...graphics]});
+    const labels=placeScreenLabels(chart,width,height,option.publication?.mapFrame);
+    return {svg:chart.renderToSVGString(),diagnostics:{scaleX,scaleY,isotropic:Math.abs(scaleX/scaleY-1)<1e-9,projection:option.geographicMetadata?.name??'legacy',lineSegmentCount:graphics.length,labels}};
   } finally {
     chart.dispose();
   }

@@ -4,6 +4,7 @@ import { buildPublicationLayout, bubbleDiameters } from './layout.mjs';
 import { interiorAnchor } from './geometry.mjs';
 import { buildLabelSeries } from './labels.mjs';
 import { buildLegendGraphics } from './legend.mjs';
+import { geographicPresentation, isTaiwan } from './projection.mjs';
 
 const DIVERGING = ['#b2182b', '#ef8a62', '#f7f7f7', '#67a9cf', '#2166ac'];
 const NULL_GRAY = '#d9d9d9';
@@ -12,27 +13,37 @@ const NULL_GRAY = '#d9d9d9';
 export function buildChartOption(resolvedConfig, joined) {
   const mode = resolvedConfig?.mode;
   if (!['choropleth', 'bubble'].includes(mode)) throw new Error('mode must be either choropleth or bubble');
-  const records = joined?.matchedFeatures ?? [];
+  const geography = geographicPresentation(resolvedConfig, joined);
+  const records = (joined?.matchedFeatures ?? []).map(record => geography.scope === 'china-province' && isTaiwan(record.feature,resolvedConfig.geoKey) ? {...record,displayName:'台湾省'} : record);
   const unmatched = joined?.unmatchedFeatures ?? [];
   const values = records.map(record => record.value).filter(isFiniteNumber);
+  if (mode === 'bubble' && values.some(value => value < 0)) throw new Error('negative bubble values are not supported');
+  const classification = resolveClassification(resolvedConfig, values);
+  const labelRecords = geography.scope === 'world' ? records.filter(record => isFiniteNumber(record.value) && classIndex(record.value, classification) > 0) : records;
+  const labelUnmatched = geography.scope === 'world' ? [] : unmatched;
   const labels = new Map(records.map(record => [record.feature, record.displayName]));
   const common = layout(resolvedConfig);
+  common.geo.projection = geography.projection;
+  common.geo.preserveAspect = 'contain';
+  common.geo.aspectScale = 1;
+  common.geographicMetadata = geography.metadata;
   const canvasScale = Math.min((resolvedConfig.width ?? 3840) / 3840, (resolvedConfig.height ?? 2160) / 2160);
   const labelLayer = buildLabelSeries({
-    records,
-    unmatched,
+    records: labelRecords,
+    unmatched: labelUnmatched,
     geoNameKey: resolvedConfig.geoKey?.name ?? 'name',
     showValues: resolvedConfig.labels?.showValues === true,
     unit: resolvedConfig.unit ?? '',
-    featureCount: records.length + unmatched.length,
+    featureCount: labelRecords.length + labelUnmatched.length,
     canvasScale,
+    displayNameFor: feature => geography.scope === 'china-province' && isTaiwan(feature,resolvedConfig.geoKey) ? '台湾省' : feature.properties?.[resolvedConfig.geoKey?.name ?? 'name'],
   });
-  if (mode === 'bubble') return bubbleOption(common, records, unmatched, labels, resolvedConfig, labelLayer);
-  return choroplethOption(common, records, unmatched, labels, resolvedConfig, values, labelLayer);
+  if (geography.scope === 'world') Object.assign(labelLayer.metadata, {visibility:'above-lowest-class',hiddenLowestClassCount:records.length-labelRecords.length,hiddenUnmatchedCount:unmatched.length});
+  if (mode === 'bubble') return bubbleOption(common, records, unmatched, labels, resolvedConfig, labelLayer, classification);
+  return choroplethOption(common, records, unmatched, labels, resolvedConfig, values, labelLayer, classification);
 }
 
-function choroplethOption(common, records, unmatched, labels, config, values, labelLayer) {
-  const classification = resolveClassification(config, values);
+function choroplethOption(common, records, unmatched, labels, config, values, labelLayer, classification) {
   const palette = values.some(value => value < 0) && values.some(value => value > 0) && classification.classes === 5
     ? DIVERGING : resolvePalette({ paletteId: config.paletteId ?? 'blue-a', classes: classification.classes });
   classification.colors = palette;
@@ -65,15 +76,14 @@ function choroplethOption(common, records, unmatched, labels, config, values, la
     },
     layout: { mode: 'choropleth', nullColor: NULL_GRAY, palette },
     classification,
-    presentation: { labels: labelLayer.metadata, legend: legend.metadata },
+    presentation: { labels: labelLayer.metadata, legend: legend.metadata, geography: common.geographicMetadata },
   };
 }
 
-function bubbleOption(common, records, unmatched, labels, config, labelLayer) {
+function bubbleOption(common, records, unmatched, labels, config, labelLayer, classification) {
   if (records.some(record => isFiniteNumber(record.value) && record.value < 0)) throw new Error('negative bubble values are not supported');
   const values = records.map(record => record.value).filter(isFiniteNumber);
   if (!values.length) throw new Error('bubble requires at least one finite numeric value');
-  const classification = resolveClassification(config, values);
   const colors = resolvePalette({ paletteId: config.paletteId ?? 'orange-a', classes: classification.classes });
   const canvasScale = Math.min((config.width ?? 3840) / 3840, (config.height ?? 2160) / 2160);
   const diameters = bubbleDiameters(classification.classes).map(value => value * canvasScale);
@@ -123,7 +133,7 @@ function bubbleOption(common, records, unmatched, labels, config, labelLayer) {
     },
     layout: { mode: 'bubble', nullColor: NULL_GRAY, palette: colors, diameters },
     classification,
-    presentation: { labels: labelLayer.metadata, legend: legend.metadata },
+    presentation: { labels: labelLayer.metadata, legend: legend.metadata, geography: common.geographicMetadata },
   };
 }
 

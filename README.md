@@ -4,27 +4,27 @@
 
 将 **Excel 指标数据 + GeoJSON 行政边界** 转换为可审计的分级颜色图与分级气泡图。
 
-**当前版本：V1.3.1** · Codex / Claude Code / WorkBuddy · Windows / macOS / Linux
+**当前版本：V1.4** · Codex / Claude Code / WorkBuddy · Windows / macOS / Linux
 
-[下载 V1.3.1](https://github.com/edchwx-lang/industry-map/releases/tag/v1.3.1) · [技能说明](SKILL.md) · [配置文档](references/input-contract.md)
+[下载 V1.4](https://github.com/edchwx-lang/industry-map/releases/tag/1.4) · [技能说明](SKILL.md) · [配置文档](references/input-contract.md)
 
 ## 示例
 
-全球半导体重点企业分布。以下企业数量为**模拟数据，仅用于展示制图能力，不代表真实企业数量、排名或完整行业统计**。三张图使用同一数据与分级阈值。
+全球半导体重点企业分布、全国半导体产业发展水平与深圳市海洋产业。以下指标为**模拟数据，仅用于展示制图能力，不代表真实企业数量、发展水平、排名或完整行业统计**。三张图分别使用对应地区的数据与分级方案。
 
-### 蓝色 · 分级颜色图
+### 全球 · 红蓝白分级气泡图
 
-![全球半导体重点企业分布：蓝色分级颜色图](docs/images/world-blue.png)
+![全球半导体重点企业分布：红蓝白分级气泡图](docs/images/world-bubble.png)
 
-### 橙色 · 分级颜色图
+### 中国 · 红蓝白分级颜色图
 
-![全球半导体重点企业分布：橙色分级颜色图](docs/images/world-orange.png)
+![全国半导体产业发展水平：红蓝白分级颜色图](docs/images/china-choropleth.png)
 
-### 红蓝白 · 分级气泡图
+### 深圳 · 蓝色分级颜色图
 
-![全球半导体重点企业分布：红蓝白分级气泡图](docs/images/world-red-blue-white-bubble.png)
+![深圳市海洋产业：蓝色分级颜色图](docs/images/shenzhen-choropleth.png)
 
-示例采用 `[0,100)`、`[100,200)`、`[200,300)`、`[300,400)`、`400及以上`。最低档不绘制气泡，仅保留灰色底图；较高档依次使用浅蓝、蓝、浅红、红。
+全球气泡图采用 `[0,100)`、`[100,200)`、`[200,300)`、`[300,400)`、`400及以上`。最低档不绘制气泡或国家名称，仅保留灰色底图；较高档依次使用浅蓝、蓝、浅红、红。中国与深圳的分级见各自图例。
 
 ## 能做什么
 
@@ -40,7 +40,7 @@
 
 需要 **Node.js 22+** 与本机 **Chrome、Chromium 或 Edge**。发布包已包含 JavaScript 依赖，运行时无需 `npm install`。
 
-1. 从 [V1.3.1 发布页](https://github.com/edchwx-lang/industry-map/releases/tag/v1.3.1) 下载 `industry-map-v1.3.1.zip`。
+1. 从 [V1.4 发布页](https://github.com/edchwx-lang/industry-map/releases/tag/1.4) 下载 `industry-map-v1.4.zip`。
 2. 解压后将完整的 `industry-map` 文件夹放到对应目录：
 
 | Agent | 技能目录 |
@@ -57,7 +57,7 @@
 node dist/industry-map.mjs version
 ```
 
-应输出 `"version":"1.3.1"`。跨平台路径与浏览器设置见 [兼容性说明](references/compatibility.md)。Windows 已执行实际导出；macOS/Linux 路径有单元测试覆盖，尚未在这两种系统上完成真机导出验收。
+应输出 `"version":"1.4.0"`。跨平台路径与浏览器设置见 [兼容性说明](references/compatibility.md)。Windows 已执行实际导出；macOS/Linux 路径有单元测试覆盖，尚未在这两种系统上完成真机导出验收。
 
 ## 使用
 

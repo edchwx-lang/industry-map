@@ -1,0 +1,8 @@
+{
+  "source": "User-supplied 天地图/中国_省.geojson; original source hash verified",
+  "sourceSha256": "3af8294f9ad61cc2bf84c1bb7e4bbf86a6336c68d754b699a0e6ddc33ef81486",
+  "sha256": "42ec7f987ffd8c54f2137d2c268493e7a5c95dc0d9ea59051e9256a86fa27fea",
+  "featureCount": 8,
+  "segmentCount": 31,
+  "transformation": "select original line features without modifying coordinates; source names retained"
+}

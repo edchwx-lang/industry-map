@@ -63,9 +63,9 @@ test('bundled catalog contains the approved polygon-only layers with matching ha
   const manifest = JSON.parse(await readFile(path.join(skillRoot, 'boundary', 'manifest.json'), 'utf8'));
   const expectedCounts = {
     world: 180, china: 1, 'china-province': 34, 'china-city': 375,
-    'china-county': 2891, 'town-441900': 34, 'town-440515': 11,
+    'china-county': 2891, 'county-440300': 10, 'town-441900': 34, 'town-440515': 11,
   };
-  assert.equal(manifest.assets.length, 7);
+  assert.equal(manifest.assets.length, 8);
   for (const asset of manifest.assets) {
     assert.equal(asset.featureCount, expectedCounts[asset.id], asset.id);
     const bytes = await readFile(path.join(skillRoot, 'boundary', asset.path));

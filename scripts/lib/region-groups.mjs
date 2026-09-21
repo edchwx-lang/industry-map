@@ -1,7 +1,10 @@
 /** Explicit, user-confirmed disjoint aggregation; original rows remain in provenance. */
 export function applyRegionGroups(geojson, joined, config) {
   for (const group of config.regionGroups ?? []) {
-    if (group.valuesAreDisjoint !== true) throw new Error('Region grouping requires confirmed disjoint values');
+    const aggregation = group.aggregation ?? 'sum-disjoint';
+    if (!['sum-disjoint','target-includes-members'].includes(aggregation)) throw new Error('Unsupported region aggregation');
+    if (aggregation === 'sum-disjoint' && group.valuesAreDisjoint !== true) throw new Error('Region grouping requires confirmed disjoint values');
+    if (aggregation === 'sum-disjoint' && ['score','rate','index'].includes(config.metricKind)) throw new Error('Non-additive score/rate/index metrics cannot be summed');
     const names = group.members;
     if (!Array.isArray(names) || names.length < 2 || new Set(names).size !== names.length || !names.includes(group.target)) throw new Error('Invalid region group');
     const records = names.map(name => {
@@ -11,8 +14,9 @@ export function applyRegionGroups(geojson, joined, config) {
     });
     const target = records[names.indexOf(group.target)];
     const feature = { ...target.feature, geometry: { type: 'MultiPolygon', coordinates: records.flatMap(r => r.feature.geometry.type === 'Polygon' ? [r.feature.geometry.coordinates] : r.feature.geometry.coordinates) } };
-    const value = records.reduce((sum, r) => sum + r.value, 0);
-    const aggregate = { ...target, feature, value, row: { ...target.row, [config.metricKey]: value, valueProvenance: 'explicit-region-aggregation', sourceRows: records.map(r => r.row) } };
+    const value = aggregation === 'target-includes-members' ? target.value : records.reduce((sum, r) => sum + r.value, 0);
+    if (!Number.isFinite(value)) throw new Error('Region aggregation must remain finite; numeric overflow');
+    const aggregate = { ...target, feature, value, row: { ...target.row, [config.metricKey]: value, valueProvenance: `explicit-region-aggregation:${aggregation}`, sourceRows: records.map(r => r.row) } };
     const removed = new Set(records.map(r => r.feature));
     geojson.features = geojson.features.filter(f => !removed.has(f)).concat(feature);
     joined.matchedFeatures = joined.matchedFeatures.filter(r => !records.includes(r)).concat(aggregate);

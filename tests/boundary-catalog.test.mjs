@@ -41,9 +41,9 @@ test('legacy Codex cache remains readable when the platform-native cache is empt
   assert.equal(resolved.provenance.kind, 'verified-cache');
 });
 
-test('catalog lists seven bundled assets and resolves Tianditu by administrative level', async () => {
+test('catalog lists eight bundled assets and resolves Tianditu by administrative level', async () => {
   const listed = await listBoundaries({ skillRoot });
-  assert.equal(listed.length, 7);
+  assert.equal(listed.length, 8);
   const result = await resolveBoundary({ skillRoot, level: 'county' });
   assert.equal(result.provenance.source, '天地图');
   assert.match(result.path, /china[\\/]county[\\/]tianditu\.geojson$/);
@@ -53,7 +53,7 @@ test('boundary list CLI emits the local catalog', () => {
   const run = spawnSync(process.execPath, [path.join(skillRoot, 'scripts', 'industry-map.mjs'), 'boundary', 'list'], { encoding: 'utf8' });
   assert.equal(run.status, 0, run.stderr);
   const listed = JSON.parse(run.stdout);
-  assert.equal(listed.length, 7);
+  assert.equal(listed.length, 8);
   assert.ok(listed.some(({ id }) => id === 'town-440515'));
 });
 

@@ -82,7 +82,7 @@ test('production package runs without node_modules and stays below 100 MiB', asy
 
   const listed = spawnSync(process.execPath, [path.join(packaged, 'dist', 'industry-map.mjs'), 'boundary', 'list'], { encoding: 'utf8' });
   assert.equal(listed.status, 0, listed.stderr);
-  assert.equal(JSON.parse(listed.stdout).length, 7);
+  assert.equal(JSON.parse(listed.stdout).length, 8);
 
   const geojsonPath = path.join(root, 'input.geojson');
   const excelPath = path.join(root, 'metrics.xlsx');

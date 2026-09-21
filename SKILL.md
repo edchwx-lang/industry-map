@@ -5,7 +5,7 @@ description: Use when an administrative-region industry map, choropleth, proport
 
 # Industry map
 
-当前稳定版本为 V1.3.1（`1.3.1`）。同一核心包兼容 Codex、Claude Code 与 WorkBuddy，并支持 Windows、macOS 和 Linux。执行 `node dist/industry-map.mjs version` 可核对实际安装版本；安装、运行环境与平台差异见 [references/compatibility.md](references/compatibility.md)，版本管理规则见 [references/versioning.md](references/versioning.md)。
+当前版本为 V1.4（`1.4.0`）。同一核心包兼容 Codex、Claude Code 与 WorkBuddy，并支持 Windows、macOS 和 Linux。执行 `node dist/industry-map.mjs version` 可核对实际安装版本；安装、运行环境与平台差异见 [references/compatibility.md](references/compatibility.md)，版本管理规则见 [references/versioning.md](references/versioning.md)。
 
 将一个 polygon GeoJSON 与一张 Excel 指标表转换为可审计的出版级产业地图。只使用输入几何与数值；不得调用 QGIS、地图生成模型、在线底图或网络资源来补画边界和数据。
 
@@ -18,16 +18,18 @@ description: Use when an administrative-region industry map, choropleth, proport
 
 ## 工作流
 
-全球国家级示例按用户确认的中国口径将台湾并入中国，不单独标注或绘制气泡；保留全部原始几何。合并数值前必须确认两条数据互不包含，避免重复计算。通过 `regionGroups` 显式记录成员与目标，审计保留原始行。气泡图最低档默认不绘制圆，仅保留灰色底图与名称；最低档仍参与分级和审计。
+全球国家级地图按用户确认口径将台湾几何纳入中国，不单独标注或绘制气泡；全国省级地图完整保留台湾省，标注“台湾省”，按省级指标着色或绘制气泡。不得把国家级合并规则套到省级数据。全球 `regionGroups` 显式确认数值口径：互不包含的数量可求和；中国总数已包含成员时保留目标值；评分、比率和指数不得相加。详见 [references/geography.md](references/geography.md)。气泡图最低档默认不绘制圆，仅保留灰色底图与名称；最低档仍参与分级和审计。
+
+地图选定投影后只允许等比例缩放和平移。图例独立布局，禁止通过横向或纵向拉伸填满画布。全国地图保留原始南海岛礁与境界线覆盖层；缺少来源时停止并索取，不凭空补画。深圳使用用户提供的10分区专用资产，保留大鹏新区完整连接代码，不截断或按名称猜造边界。
 
 1. 有用户 Excel 时，只读检查 `.geojson` 与 `.xlsx`，先运行 `inspect`。根据 `requiredUserInputs` 补齐图名、单位、表格、指标及连接信息；不得凭文件名猜。没有 Excel 时，按用户所说地区生成受保护模板，等待用户只填写标题、指标名称、可选单位及指标值。
-2. 数据检查完成后执行 V1.2 展示门禁。一次性询问用户尚未明确的三项：①图表类型：分级设色图（推荐）、比例气泡图或两者都做；②颜色：橙色、蓝色（推荐）或红蓝白（B版重排，配置编号 mixed-c）；③分级：默认 5 级自动分级（推荐）、3–7 级自动分级或自定义阈值。用户请求中已明确的选择不重复询问，未明确的选择不得静默采用默认值。颜色与图表类型可自由组合。
+2. 数据检查完成后执行 V1.2 展示门禁。一次性询问用户尚未明确的三项：①图表类型：分级颜色图（推荐）、分级气泡图或两者都做；②颜色：橙色、蓝色（推荐）或红蓝白（B版重排，配置编号 mixed-c）；③分级：默认 5 级自动分级（推荐）、3–7 级自动分级或自定义阈值。用户请求中已明确的选择不重复询问，未明确的选择不得静默采用默认值。颜色与图表类型可自由组合。
 3. 用户选择“两者都做”时，为 `choropleth` 与 `bubble` 建立独立 config 和输出目录；默认共用用户确认的颜色、级数与分级方案，只有用户明确要求时才分别设置。
 4. 根据 inspection report 解决 sheet/table、字段和连接。行政代码存在时先精确代码匹配，再精确规范化名称匹配。模糊匹配只能作为建议；别名必须显式写出 Excel 名、GeoJSON 名与展示名。任何歧义、重复 key 或非空未匹配行都必须在渲染前停止。
 5. 普通 Excel 的空指标仍为阻断项，不得变成 0。只有本技能生成且通过版本、身份和边界哈希校验的模板，空白指标才按 0 处理，并写入 `defaulted_zero` 审计来源。
 6. 用本技能的 Node CLI 渲染。目标已存在时停止；只有用户明确授权覆盖时才传 `--force`。
-7. 两种地图默认只显示全部行政区名称，不显示数值。只有用户明确要求“显示数据”时，才配置 `labels.showValues: true`；未匹配区域始终只显示名称。
-8. 检查六项工件、报告中的连接覆盖率/分类来源/区间语义/展示元数据/警告/哈希、audit workbook 的合计与别名，以及 PNG 尺寸、SVG 文本/路径和 PDF。最后实际查看 PNG；视觉参考只用于版式对照，不得替代源几何或数据。
+7. 默认只显示行政区名称，不显示数值。全球地图的两种模式只标注高于最低档的国家：5档时保留较高4档，其他档数仍只隐藏最低档；未匹配国家不标注。几何、数据、着色、统计与审计不删除。全国及地方地图仍标注全部行政区。标签采用无底色、深灰加粗字，无描边或阴影；保留避让引导线。只有用户明确要求“显示数据”时，才配置 `labels.showValues: true`；该选项不取消全球最低档隐藏规则。
+8. 检查六项工件、报告中的连接覆盖率/分类来源/区间语义/展示元数据/警告/哈希、audit workbook 的合计与别名，以及 PNG 尺寸、SVG 文本/路径和 PDF。必须核对 `geometryVerification.isotropic`、横纵缩放系数、标签数量/重叠数和全国境界线段数。最后实际查看 PNG 原尺寸及缩小预览；数据文件哈希相同不代表渲染比例正确。视觉参考不得替代源几何或数据。
 
 从技能目录运行：
 
