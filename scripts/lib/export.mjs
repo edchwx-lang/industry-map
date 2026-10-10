@@ -30,7 +30,9 @@ export async function exportArtifacts({ option, geojson, lineOverlay, outputDir,
       await runBrowser(browser, [...browserArgs, '--hide-scrollbars', '--force-device-scale-factor=1', `--window-size=${width},${height}`, `--screenshot=${temporaryPng}`, toFileUrl(temporarySvg)]);
       await runBrowser(browser, [...browserArgs, '--no-pdf-header-footer', `--print-to-pdf=${temporaryPdf}`, toFileUrl(temporaryPrintDocument)]);
     } finally {
-      await rm(profile, { recursive: true, force: true });
+      await rm(profile, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 }).catch(error => {
+        process.stderr.write(`Browser profile cleanup warning: ${error.message}\n`);
+      });
       await removeIfPresent(temporaryPrintDocument);
     }
     await assertNonempty(temporaryPng);
@@ -177,10 +179,38 @@ async function rejectExisting(paths) {
 async function assertNonempty(path) { if ((await stat(path)).size < 1) throw new Error(`Browser produced an empty artifact: ${path}`); }
 async function removeIfPresent(path) { try { const { unlink } = await import('node:fs/promises'); await unlink(path); } catch { /* cleanup only */ } }
 export function toFileUrl(path) { return pathToFileURL(path).href; }
-function runBrowser(command, args) {
+export function runBrowser(command, args, { timeoutMs = 60000 } = {}) {
+  if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) throw new Error('Browser timeout must be positive');
   return new Promise((resolve, reject) => {
-    const child = spawn(command, args, { windowsHide: true, stdio: 'ignore' });
-    child.once('error', reject);
-    child.once('close', code => code === 0 ? resolve() : reject(new Error(`Browser exited with code ${code}`)));
+    const child = spawn(command, args, { windowsHide: true, stdio: ['ignore', 'ignore', 'pipe'] });
+    let stderr = '', timedOut = false, settled = false, killTimer;
+    const finish = error => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      clearTimeout(killTimer);
+      error ? reject(error) : resolve();
+    };
+    const diagnostic = message => new Error(`${message}; browser=${command}${stderr ? `\n${stderr.trim()}` : ''}`);
+    child.stderr.setEncoding('utf8');
+    child.stderr.on('data', chunk => { stderr = (stderr + chunk).slice(-8192); });
+    const timer = setTimeout(() => {
+      timedOut = true;
+      // Only terminate the process tree launched by this export, never a user's browser by name.
+      if (process.platform === 'win32' && child.pid) {
+        const killer = spawn('taskkill.exe', ['/PID', String(child.pid), '/T', '/F'], { windowsHide: true, stdio: 'ignore', timeout: 2000 });
+        killer.on('error', () => child.kill('SIGKILL'));
+      } else child.kill('SIGKILL');
+      killTimer = setTimeout(() => {
+        child.kill('SIGKILL');
+        child.stderr.destroy();
+        child.unref();
+        finish(diagnostic(`Browser timed out after ${timeoutMs} ms`));
+      }, 3000);
+    }, timeoutMs);
+    child.once('error', error => finish(diagnostic(`Browser launch failed: ${error.message}`)));
+    child.once('close', (code, signal) => finish(timedOut
+      ? diagnostic(`Browser timed out after ${timeoutMs} ms`)
+      : code === 0 ? undefined : diagnostic(`Browser exited with code ${code}${signal ? ` signal ${signal}` : ''}`)));
   });
 }

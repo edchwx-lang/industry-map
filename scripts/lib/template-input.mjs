@@ -21,7 +21,7 @@ export async function loadTemplateInput({ excelPath, skillRoot }) {
     skillRoot,
     id: metadata.get('boundary_id'),
     level: metadata.get('child_level'),
-    parentAdcode: metadata.get('child_level') === 'town' ? metadata.get('parent_adcode') : undefined,
+    parentAdcode: metadata.get('parent_adcode') || undefined,
   });
   if (metadata.get('boundary_sha256') !== boundary.provenance.sha256) throw new Error('template boundary hash mismatch');
   const identities = [];

@@ -5,7 +5,7 @@ description: Use when an administrative-region industry map, choropleth, proport
 
 # Industry map
 
-当前版本为 V1.4（`1.4.0`）。同一核心包兼容 Codex、Claude Code 与 WorkBuddy，并支持 Windows、macOS 和 Linux。执行 `node dist/industry-map.mjs version` 可核对实际安装版本；安装、运行环境与平台差异见 [references/compatibility.md](references/compatibility.md)，版本管理规则见 [references/versioning.md](references/versioning.md)。
+当前版本为 V1.4.1（`1.4.1`）。同一核心包兼容 Codex、Claude Code 与 WorkBuddy，并支持 Windows、macOS 和 Linux。执行 `node dist/industry-map.mjs version` 可核对实际安装版本；安装、运行环境与平台差异见 [references/compatibility.md](references/compatibility.md)，版本管理规则见 [references/versioning.md](references/versioning.md)。
 
 将一个 polygon GeoJSON 与一张 Excel 指标表转换为可审计的出版级产业地图。只使用输入几何与数值；不得调用 QGIS、地图生成模型、在线底图或网络资源来补画边界和数据。
 

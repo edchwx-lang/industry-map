@@ -36,6 +36,8 @@ Claude Code 与 WorkBuddy 使用各自路径执行同一命令。
 
 PNG、SVG 与 PDF 导出需要本机 Chrome、Chromium 或 Edge。V1.3 会按当前平台检查常见安装位置和 `PATH`；macOS 支持 `/Applications`、`~/Applications` 中的 Chrome 与 Edge。自动发现失败时设置 `INDUSTRY_MAP_BROWSER` 为可执行文件的绝对路径。浏览器始终使用一次性隔离 profile，不读取默认用户 profile。
 
+V1.4.1 的 PNG 截图和 PDF 打印各限时 60 秒。超时或退出失败时保留浏览器路径、退出原因与末尾错误输出，不进行无限重试；先检查提示及 `INDUSTRY_MAP_BROWSER`。临时 profile 清理失败仅提示警告，不覆盖原始渲染错误。
+
 ## Cache locations
 
 - Windows：`%LOCALAPPDATA%/industry-map/cache/boundary`
